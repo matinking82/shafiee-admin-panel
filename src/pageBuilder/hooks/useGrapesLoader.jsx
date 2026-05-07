@@ -1,38 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import grapesjs from 'grapesjs';
+import grapesjsBlocksBasic from 'grapesjs-blocks-basic';
+import 'grapesjs/dist/css/grapes.min.css';
+
+const GJS_BLOCKS_BASIC_PLUGIN = 'gjs-blocks-basic';
+const hasWindow = typeof window !== 'undefined';
+const GJS_BLOCKS_BASIC_REGISTRY_KEY = '_gjsBlocksBasicRegistered';
+let grapesLoaderInitialized = false;
+
+const isGrapesReady = () =>
+  !!window.grapesjs?.plugins && !!window[GJS_BLOCKS_BASIC_REGISTRY_KEY];
+
+function initializeGrapesLoader() {
+  if (!hasWindow) return false;
+  if (grapesLoaderInitialized) {
+    return isGrapesReady();
+  }
+
+  if (!window.grapesjs) {
+    window.grapesjs = grapesjs;
+  }
+
+  if (window.grapesjs?.plugins && !window[GJS_BLOCKS_BASIC_REGISTRY_KEY]) {
+    window.grapesjs.plugins.add(GJS_BLOCKS_BASIC_PLUGIN, grapesjsBlocksBasic);
+    window[GJS_BLOCKS_BASIC_REGISTRY_KEY] = true;
+  }
+
+  grapesLoaderInitialized = true;
+  return isGrapesReady();
+}
 
 export default function useGrapesLoader() {
-  const [loaded, setLoaded] = useState(!!window.grapesjs);
-
-  useEffect(() => {
-    if (window.grapesjs) {
-      setLoaded(true);
-      return;
-    }
-
-    // CSS
-    if (!document.querySelector('link[href*="grapes.min.css"]')) {
-      const cssLink = document.createElement('link');
-      cssLink.rel = 'stylesheet';
-      cssLink.href = 'https://unpkg.com/grapesjs/dist/css/grapes.min.css';
-      document.head.appendChild(cssLink);
-    }
-
-    // JS chain
-    const s1 = document.createElement('script');
-    s1.src = 'https://unpkg.com/grapesjs';
-    s1.onload = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://unpkg.com/grapesjs-preset-webpage';
-      s2.onload = () => {
-        const s3 = document.createElement('script');
-        s3.src = 'https://unpkg.com/grapesjs-blocks-basic';
-        s3.onload = () => setLoaded(true);
-        document.body.appendChild(s3);
-      };
-      document.body.appendChild(s2);
-    };
-    document.body.appendChild(s1);
-  }, []);
+  const [loaded] = useState(() => initializeGrapesLoader());
 
   return loaded;
 }
