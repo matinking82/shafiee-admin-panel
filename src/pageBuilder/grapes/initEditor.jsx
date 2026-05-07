@@ -10,6 +10,7 @@ export default function initEditor({ container, panels, initialHtml, initialCss 
     height: '100%',
     width: 'auto',
     storageManager: false,
+    telemetry: false,
 
     plugins: ['gjs-blocks-basic'],
     pluginsOpts: {
